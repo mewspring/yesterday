@@ -1,5 +1,3 @@
-// TODO: Generate usage doc using go:generate.
-
 // Yesterday is a procrastination tool which allows you to send emails up to 24
 // hours in the past.
 //
@@ -17,13 +15,31 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/mewkiz/pkg/errutil"
 )
+
+//go:generate usagen yesterday
+
+// use specifies the usage message of yesterday.
+const use = `
+Usage: yesterday [OPTION]... FILE...
+Send emails up to 24 hours in the past.
+
+Flags:`
+
+// usage prints to standard error a usage message documenting all defined
+// command-line flags.
+func usage() {
+	fmt.Fprintln(os.Stderr, use[1:])
+	flag.PrintDefaults()
+}
 
 func main() {
 	// Server mode flags.
@@ -56,6 +72,8 @@ func main() {
 	flag.StringVar(&flagMessage, "message", "", "Email message.")
 	flag.DurationVar(&flagPast, "past", 24*time.Hour, "Spoof date in number of hours in the past.")
 
+	flag.Usage = usage
+
 	flag.Parse()
 
 	// Server mode.
@@ -66,6 +84,14 @@ func main() {
 	// Client mode.
 	if flagPast < 0 || flagPast > 24*time.Hour {
 		log.Fatalf("invalid number of hours in the past; expected >= 0h and <= 24h, got %v", flagPast)
+	}
+	if len(flagFrom) < 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+	if len(flagTo) < 1 {
+		flag.Usage()
+		os.Exit(1)
 	}
 	date := time.Now().Add(-flagPast)
 	email := &Email{

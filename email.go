@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"time"
+
+	"github.com/mewkiz/pkg/errutil"
+)
 
 // Email represents an email of the past.
 type Email struct {
@@ -20,5 +24,11 @@ type Email struct {
 
 // Send sends the email from the spoofed date.
 func (email *Email) Send() error {
+	if len(email.from) < 1 {
+		return errutil.New("empty sender email address")
+	}
+	if len(email.to) < 1 {
+		return errutil.New("empty recipient email address")
+	}
 	panic("not yet implemented.")
 }
