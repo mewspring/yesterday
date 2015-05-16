@@ -27,17 +27,19 @@ yesterday [OPTION]... FILE...
 
 Flags:
   -auth string
-        JSON file with SMTP authentication information. (default "auth.json")
+      JSON file with SMTP authentication information. (default "auth.json")
+  -d  Enable debug output.
   -http string
-        HTTP service address (e.g. ":6565").
+      HTTP service address (e.g. ":6565").
   -message string
-        Email message.
+      Email message.
   -past duration
-        Spoof date in number of hours in the past. (default 24h0m0s)
+      Spoof date in number of hours in the past. (default 24h0m0s)
   -subject string
-        Email subject.
+      Email subject.
   -to string
-        Recipient email address.
+      Recipient email address.
+
 ```
 
 ## Public domain

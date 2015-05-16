@@ -42,6 +42,9 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+// flagDebug specifies whether debug output is enabled.
+var flagDebug bool
+
 func main() {
 	// Server mode flags.
 	var (
@@ -72,9 +75,15 @@ func main() {
 	flag.StringVar(&flagMessage, "message", "", "Email message.")
 	flag.DurationVar(&flagPast, "past", 24*time.Hour, "Spoof date in number of hours in the past.")
 	flag.StringVar(&flagAuth, "auth", "auth.json", "JSON file with SMTP authentication information.")
+	flag.BoolVar(&flagDebug, "d", false, "Enable debug output.")
 
+	// Print usage if none of the two modes have been specified.
 	flag.Usage = usage
 	flag.Parse()
+	if len(flagAddr) < 1 && len(flagTo) < 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
 
 	// Parse SMTP authentication JSON file.
 	auth, err := parseAuth(flagAuth)
@@ -91,10 +100,6 @@ func main() {
 	// Client mode.
 	if flagPast < 0 || flagPast > 24*time.Hour {
 		log.Fatalf("invalid number of hours in the past; expected >= 0h and <= 24h, got %v", flagPast)
-	}
-	if len(flagTo) < 1 {
-		flag.Usage()
-		os.Exit(1)
 	}
 
 	// Create email.

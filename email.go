@@ -5,9 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"mime"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/mewkiz/pkg/errutil"
@@ -76,27 +79,64 @@ Content-Type: text/plain; charset="UTF-8"
 
 %s
 `
-	enc := base64.NewEncoder(base64.StdEncoding, buf)
+	l72 := &lineBreaker{
+		x: 72,
+		w: buf,
+	}
 	fmt.Fprintf(buf, format[1:], date, e.to, e.subject, e.message)
 	for name, content := range e.attachments {
+		enc := base64.NewEncoder(base64.StdEncoding, l72)
+		ext := filepath.Ext(name)
 		const format = `--BOUNDARY
-Content-Type: text/plain
+Content-Type: %s
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename=%q; modification-date=%q
 `
-		fmt.Fprintf(buf, format, name, date)
+		fmt.Fprintf(buf, format, mime.TypeByExtension(ext), name, date)
 		// TODO: Split base64 encoded content into line-72.
 		enc.Write(content)
+		enc.Close()
 		buf.WriteByte('\n')
 	}
 	fmt.Fprintln(buf, "--BOUNDARY--")
 
-	// TODO: Remove debug output.
-	log.Print("### wire-format message ###", buf.String())
+	//
+	if flagDebug {
+		log.Print("### message in wire format ###\n", buf.String())
+	}
 
 	addr := fmt.Sprintf("%s:%d", auth.Host, auth.Port)
 	if err := smtp.SendMail(addr, a, "", to, buf.Bytes()); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
+}
+
+// lineBreaker is a io.Writer which inserts a newline after every x bytes
+// written.
+type lineBreaker struct {
+	// Insert a newline after every x bytes written.
+	x int
+	// Number of bytes written.
+	n int
+	// Underlying io.Writer.
+	w io.Writer
+}
+
+// Write writes buf to the underlying io.Writer and injects a newline after
+// every x bytes written.
+func (l *lineBreaker) Write(buf []byte) (n int, err error) {
+	newline := []byte{'\n'}
+	for i := 0; i < len(buf)-l.x; i += l.x {
+		m, err := l.w.Write(buf[i : i+l.x])
+		n += m
+		if err != nil {
+			return n, errutil.Err(err)
+		}
+		// Inject newline.
+		if _, err = l.w.Write(newline); err != nil {
+			return n, errutil.Err(err)
+		}
+	}
+	return l.w.Write(buf[n:])
 }
