@@ -13,8 +13,6 @@ import (
 
 // Email represents an email of the past.
 type Email struct {
-	// Sender email address.
-	from string
 	// Recipient email address.
 	to string
 	// Email subject.
@@ -56,9 +54,6 @@ func parseAuth(path string) (*Auth, error) {
 
 // Send sends the email from the spoofed date.
 func (e *Email) Send(auth *Auth) error {
-	if len(e.from) < 1 {
-		return errutil.New("empty sender email address")
-	}
 	if len(e.to) < 1 {
 		return errutil.New("empty recipient email address")
 	}
@@ -66,20 +61,17 @@ func (e *Email) Send(auth *Auth) error {
 	to := []string{e.to}
 	buf := new(bytes.Buffer)
 	const format = `
+Content-Type: text/plain; charset="UTF-8"
 Date: %s
-From: %s
 To: %s
 Subject: %s
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/html; charset="UTF-8"
 
 %s
 `
 	date := e.date.Format("Mon, 2 Jan 2006 15:04:05 -0700 (MST)")
-	fmt.Fprintf(buf, format[1:], date, e.from, e.to, e.subject, e.message)
+	fmt.Fprintf(buf, format[1:], date, e.to, e.subject, e.message)
 	addr := fmt.Sprintf("%s:%d", auth.Host, auth.Port)
-	if err := smtp.SendMail(addr, a, e.from, to, buf.Bytes()); err != nil {
+	if err := smtp.SendMail(addr, a, "", to, buf.Bytes()); err != nil {
 		return errutil.Err(err)
 	}
 	return nil

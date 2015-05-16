@@ -6,7 +6,7 @@
 // Without the -http flag, it runs in command-line mode and sends email from the
 // terminal.
 //
-//    yesterday -from="john.doe@student.uni.edu" -to="jane.roe@uni.edu" -subject="Report" -message="See attached report." report.pdf
+//    yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attached report." report.pdf
 //
 // With the -http flag, it runs as a web server and sends email from a web page.
 //
@@ -54,8 +54,6 @@ func main() {
 
 	// Command-line mode flags.
 	var (
-		// flagFrom specifies the sender email address.
-		flagFrom string
 		// flagTo specifies the recipient email address.
 		flagTo string
 		// flagSubject specifies the email subject.
@@ -69,7 +67,6 @@ func main() {
 	)
 
 	// Command-line mode flags.
-	flag.StringVar(&flagFrom, "from", "", "Sender email address.")
 	flag.StringVar(&flagTo, "to", "", "Recipient email address.")
 	flag.StringVar(&flagSubject, "subject", "", "Email subject.")
 	flag.StringVar(&flagMessage, "message", "", "Email message.")
@@ -95,17 +92,12 @@ func main() {
 	if flagPast < 0 || flagPast > 24*time.Hour {
 		log.Fatalf("invalid number of hours in the past; expected >= 0h and <= 24h, got %v", flagPast)
 	}
-	if len(flagFrom) < 1 {
-		flag.Usage()
-		os.Exit(1)
-	}
 	if len(flagTo) < 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
 	date := time.Now().Add(-flagPast)
 	email := &Email{
-		from:    flagFrom,
 		to:      flagTo,
 		subject: flagSubject,
 		message: flagMessage,

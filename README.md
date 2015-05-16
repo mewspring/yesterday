@@ -10,7 +10,7 @@ It has two modes.
 
 Without the -http flag, it runs in command-line mode and sends email from the terminal.
 
-    yesterday -from="john.doe@student.uni.edu" -to="jane.roe@uni.edu" -subject="Report" -message="See attached report." report.pdf
+    yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attached report." report.pdf
 
 With the -http flag, it runs as a web server and sends email from a web page.
 
@@ -28,8 +28,6 @@ yesterday [OPTION]... FILE...
 Flags:
   -auth string
         JSON file with SMTP authentication information. (default "auth.json")
-  -from string
-        Sender email address.
   -http string
         HTTP service address (e.g. ":6565").
   -message string
