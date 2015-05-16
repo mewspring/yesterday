@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/smtp"
 	"os"
 	"time"
@@ -21,7 +23,7 @@ type Email struct {
 	message string
 	// Spoof date.
 	date time.Time
-	// Attachments.
+	// Attachments, as a map from file names to file content.
 	attachments map[string][]byte
 }
 
@@ -60,16 +62,38 @@ func (e *Email) Send(auth *Auth) error {
 	a := smtp.PlainAuth("", auth.User, auth.Pass, auth.Host)
 	to := []string{e.to}
 	buf := new(bytes.Buffer)
+	date := e.date.Format("Mon, 2 Jan 2006 15:04:05 -0700 (MST)")
+
+	// Create wire-format message.
 	const format = `
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/mixed; boundary=BOUNDARY
 Date: %s
 To: %s
 Subject: %s
 
+--BOUNDARY
+Content-Type: text/plain; charset="UTF-8"
+
 %s
 `
-	date := e.date.Format("Mon, 2 Jan 2006 15:04:05 -0700 (MST)")
+	enc := base64.NewEncoder(base64.StdEncoding, buf)
 	fmt.Fprintf(buf, format[1:], date, e.to, e.subject, e.message)
+	for name, content := range e.attachments {
+		const format = `--BOUNDARY
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=%q; modification-date=%q
+`
+		fmt.Fprintf(buf, format, name, date)
+		// TODO: Split base64 encoded content into line-72.
+		enc.Write(content)
+		buf.WriteByte('\n')
+	}
+	fmt.Fprintln(buf, "--BOUNDARY--")
+
+	// TODO: Remove debug output.
+	log.Print("### wire-format message ###", buf.String())
+
 	addr := fmt.Sprintf("%s:%d", auth.Host, auth.Port)
 	if err := smtp.SendMail(addr, a, "", to, buf.Bytes()); err != nil {
 		return errutil.Err(err)

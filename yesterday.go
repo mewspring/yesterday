@@ -96,6 +96,8 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+
+	// Create email.
 	date := time.Now().Add(-flagPast)
 	email := &Email{
 		to:      flagTo,
@@ -103,6 +105,8 @@ func main() {
 		message: flagMessage,
 		date:    date,
 	}
+
+	// Read attachments.
 	attachments, err := readAttachments(flag.Args())
 	if err != nil {
 		log.Fatal(err)
