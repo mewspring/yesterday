@@ -1,14 +1,11 @@
 package main
 
-import (
-	"net/http"
-	"net/smtp"
-)
+import "net/http"
 
 // emailServer represents a server capable of sending emails from the past.
 type emailServer struct {
 	// SMTP authenticator.
-	auth smtp.Auth
+	auth *Auth
 }
 
 // ServeHTTP responds to the given HTTP request.
