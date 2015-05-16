@@ -3,6 +3,8 @@ Usage: yesterday [OPTION]... FILE...
 Send emails up to 24 hours in the past.
 
 Flags:
+  -auth string
+    	JSON file with SMTP authentication information. (default "auth.json")
   -from string
     	Sender email address.
   -http string

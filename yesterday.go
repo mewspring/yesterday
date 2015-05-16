@@ -48,6 +48,9 @@ func main() {
 		flagAddr string
 	)
 
+	// Server mode flags.
+	flag.StringVar(&flagAddr, "http", "", `HTTP service address (e.g. ":6565").`)
+
 	// Command-line mode flags.
 	var (
 		// flagFrom specifies the sender email address.
@@ -60,10 +63,9 @@ func main() {
 		flagMessage string
 		// flagPast specifies the spoof date in number of hours in the past.
 		flagPast time.Duration
+		// flagAuth specifies the JSON file with SMTP authentication information.
+		flagAuth string
 	)
-
-	// Server mode flags.
-	flag.StringVar(&flagAddr, "http", "", `HTTP service address (e.g. ":6565").`)
 
 	// Command-line mode flags.
 	flag.StringVar(&flagFrom, "from", "", "Sender email address.")
@@ -71,10 +73,16 @@ func main() {
 	flag.StringVar(&flagSubject, "subject", "", "Email subject.")
 	flag.StringVar(&flagMessage, "message", "", "Email message.")
 	flag.DurationVar(&flagPast, "past", 24*time.Hour, "Spoof date in number of hours in the past.")
+	flag.StringVar(&flagAuth, "auth", "auth.json", "JSON file with SMTP authentication information.")
 
 	flag.Usage = usage
-
 	flag.Parse()
+
+	// Parse SMTP authentication JSON file.
+	auth, err := parseAuth(flagAuth)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Server mode.
 	if len(flagAddr) > 0 {
@@ -86,28 +94,27 @@ func main() {
 		log.Fatalf("invalid number of hours in the past; expected >= 0h and <= 24h, got %v", flagPast)
 	}
 	if len(flagFrom) < 1 {
-		flag.Usage()
-		os.Exit(1)
+		log.Fatal(`empty sender email address; use -from="user@example.org"`)
 	}
 	if len(flagTo) < 1 {
-		flag.Usage()
-		os.Exit(1)
+		log.Fatal(`empty recipient email address; use -to="user@example.org"`)
 	}
 	date := time.Now().Add(-flagPast)
 	email := &Email{
-		from:        flagFrom,
-		to:          flagTo,
-		subject:     flagSubject,
-		message:     flagMessage,
-		date:        date,
-		attachments: make(map[string][]byte),
+		from:    flagFrom,
+		to:      flagTo,
+		subject: flagSubject,
+		message: flagMessage,
+		date:    date,
 	}
 	attachments, err := readAttachments(flag.Args())
 	if err != nil {
 		log.Fatal(err)
 	}
 	email.attachments = attachments
-	if err := email.Send(); err != nil {
+
+	// Send email.
+	if err := email.Send(auth); err != nil {
 		log.Fatal(err)
 	}
 }
