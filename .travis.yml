@@ -1,0 +1,26 @@
+language: go
+
+notifications:
+  email: false
+
+env:
+  global:
+    - secure: "TsCyflYZtBDBb68AuKW8/Phqzfbt5xm0vH91LU+N637gH1wnlS6pilxptztMt60+yZJrbtua9o3VQT39QYTHbbr+fqWJ7SDRJgREweUpRatGNp+xanc07d9ydsTnG0plkeFmKRh7+8UR7SbN7UHRrfp64YKfJk2/f4RwDJPb0Qoz2K+BDVDJzDEtLb8yPGGmU5VKZmj5vIlF1g2JXogGfTHiNZJYUXpHLLCdw/3COT9KytAw0BDLFZJgM2zxu/QcARz6+fm/mR13D5Adv+S2Trxr1WR8vMEI51KNcKhkNvtk25aPoJondSZjjJKFBUXyxxQtY7WYtnUoiKZcrJ9Uusxh6Iz/nO0PrC7Jf6B4zJvlDMjJdW8id9wlbiyxoVKJf0RTEm29BTJK/VCwI0NZUd4Otn/Azcy27cU62fIw8JmWyjCJgmcd7sww+AcijGmnN2Ck5tARHvSdedu3SE2sUlgm0ahw/8eI/x3GcO78wd+qBCbXYkc8+dG2jqL/KAINe/QOa3h7svLCbkS1miBrEurOqULx8XC6lEbho8/ozu4tt3EqZZ3SxBcYD4dMrQegutHX3PYW3WsBUW1ZOfU16BK1yGyfby+2MmQWzoRzAq6rmGno9UelddCXalr/RwUwxKci57S4hK5sYfrVrfOchJh81JzFZAsUb1GSWfxffeE="
+    - PATH=$HOME/gopath/bin:$PATH
+
+before_install:
+  - go get golang.org/x/tools/cmd/cover
+  - go get golang.org/x/tools/cmd/goimports
+  - go get golang.org/x/tools/cmd/vet
+  - go get github.com/golang/lint/golint
+  - go get github.com/mattn/goveralls
+
+install:
+  - go get ./...
+
+before_script:
+  - wget https://gist.github.com/mewmew/379014c9a2e6885e238d/raw/goclean.sh
+  - chmod +x goclean.sh
+
+script:
+  - ./goclean.sh
