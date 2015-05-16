@@ -1,3 +1,5 @@
+Developed during the 3rd [HackPompey](https://twitter.com/hackpompey) hackathon.
+
 # Yesterday
 
 [![Build Status](https://travis-ci.org/mewmew/yesterday.svg?branch=master)](https://travis-ci.org/mewmew/yesterday)
@@ -10,7 +12,7 @@ It has two modes.
 
 Without the -http flag, it runs in command-line mode and sends email from the terminal.
 
-    yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attached report." report.pdf
+    yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attachment." report.pdf
 
 With the -http flag, it runs as a web server and sends email from a web page.
 

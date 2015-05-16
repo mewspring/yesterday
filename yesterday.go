@@ -6,7 +6,7 @@
 // Without the -http flag, it runs in command-line mode and sends email from the
 // terminal.
 //
-//    yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attached report." report.pdf
+//    yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attachment." report.pdf
 //
 // With the -http flag, it runs as a web server and sends email from a web page.
 //

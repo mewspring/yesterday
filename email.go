@@ -62,6 +62,8 @@ func (e *Email) Send(auth *Auth) error {
 	if len(e.to) < 1 {
 		return errutil.New("empty recipient email address")
 	}
+
+	// Authenticate with the SMTP server.
 	a := smtp.PlainAuth("", auth.User, auth.Pass, auth.Host)
 	to := []string{e.to}
 	buf := new(bytes.Buffer)
@@ -79,12 +81,12 @@ Content-Type: text/plain; charset="UTF-8"
 
 %s
 `
-	l72 := &lineBreaker{
-		x: 72,
-		w: buf,
-	}
 	fmt.Fprintf(buf, format[1:], date, e.to, e.subject, e.message)
 	for name, content := range e.attachments {
+		l72 := &lineBreaker{
+			x: 72,
+			w: buf,
+		}
 		enc := base64.NewEncoder(base64.StdEncoding, l72)
 		ext := filepath.Ext(name)
 		const format = `--BOUNDARY
@@ -93,18 +95,18 @@ Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename=%q; modification-date=%q
 `
 		fmt.Fprintf(buf, format, mime.TypeByExtension(ext), name, date)
-		// TODO: Split base64 encoded content into line-72.
 		enc.Write(content)
 		enc.Close()
 		buf.WriteByte('\n')
 	}
 	fmt.Fprintln(buf, "--BOUNDARY--")
 
-	//
+	// Optional debug output.
 	if flagDebug {
 		log.Print("### message in wire format ###\n", buf.String())
 	}
 
+	// Send email.
 	addr := fmt.Sprintf("%s:%d", auth.Host, auth.Port)
 	if err := smtp.SendMail(addr, a, "", to, buf.Bytes()); err != nil {
 		return errutil.Err(err)
@@ -127,16 +129,24 @@ type lineBreaker struct {
 // every x bytes written.
 func (l *lineBreaker) Write(buf []byte) (n int, err error) {
 	newline := []byte{'\n'}
-	for i := 0; i < len(buf)-l.x; i += l.x {
-		m, err := l.w.Write(buf[i : i+l.x])
+	for i := 0; i < len(buf); {
+		if l.n > 0 && l.n%l.x == 0 {
+			// Inject newline.
+			if _, err = l.w.Write(newline); err != nil {
+				return n, errutil.Err(err)
+			}
+		}
+		end := i + l.x - (l.n % l.x)
+		if end > len(buf) {
+			end = len(buf)
+		}
+		m, err := l.w.Write(buf[i:end])
 		n += m
+		l.n += m
+		i += m
 		if err != nil {
 			return n, errutil.Err(err)
 		}
-		// Inject newline.
-		if _, err = l.w.Write(newline); err != nil {
-			return n, errutil.Err(err)
-		}
 	}
-	return l.w.Write(buf[n:])
+	return n, nil
 }
