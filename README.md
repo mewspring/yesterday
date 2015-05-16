@@ -22,7 +22,25 @@ With the -http flag, it runs as a web server and sends email from a web page.
 
 ## Usage
 
-TODO
+```
+yesterday [OPTION]... FILE...
+
+Flags:
+  -auth string
+        JSON file with SMTP authentication information. (default "auth.json")
+  -from string
+        Sender email address.
+  -http string
+        HTTP service address (e.g. ":6565").
+  -message string
+        Email message.
+  -past duration
+        Spoof date in number of hours in the past. (default 24h0m0s)
+  -subject string
+        Email subject.
+  -to string
+        Recipient email address.
+```
 
 ## Public domain
 

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -86,7 +87,8 @@ func main() {
 
 	// Server mode.
 	if len(flagAddr) > 0 {
-		log.Fatal(listen(flagAddr))
+		srv := &emailServer{auth: auth}
+		log.Fatal(http.ListenAndServe(flagAddr, srv))
 	}
 
 	// Client mode.
@@ -94,10 +96,12 @@ func main() {
 		log.Fatalf("invalid number of hours in the past; expected >= 0h and <= 24h, got %v", flagPast)
 	}
 	if len(flagFrom) < 1 {
-		log.Fatal(`empty sender email address; use -from="user@example.org"`)
+		flag.Usage()
+		os.Exit(1)
 	}
 	if len(flagTo) < 1 {
-		log.Fatal(`empty recipient email address; use -to="user@example.org"`)
+		flag.Usage()
+		os.Exit(1)
 	}
 	date := time.Now().Add(-flagPast)
 	email := &Email{
