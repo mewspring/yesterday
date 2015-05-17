@@ -44,6 +44,20 @@ Flags:
 
 ```
 
+## Web Interface
+
+> *Yesterday, all my troubles seemed so far away*
+
+![Yesterday, all my troubles seemed so far away](https://raw.githubusercontent.com/mewmew/yesterday/master/examples/yesterday_1.png)
+
+> *Oh, I believe in yesterday*
+
+![Oh, I believe in yesterday](https://raw.githubusercontent.com/mewmew/yesterday/master/examples/yesterday_2.png)
+
+> *Yesterday, love was such an easy game to play*
+
+![Yesterday, love was such an easy game to play](https://raw.githubusercontent.com/mewmew/yesterday/master/examples/yesterday_3.png)
+
 ## Public domain
 
 The source code and any original content of this repository is hereby released into the [public domain].

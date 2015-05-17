@@ -1,7 +1,7 @@
 package main
 
 import (
-	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -35,11 +35,7 @@ func (srv *emailServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // serveGET responds to the given HTTP GET request.
 func (srv *emailServer) serveGET(w http.ResponseWriter, req *http.Request) error {
 	// Display form page.
-	t, err := template.ParseFiles("data/index.html")
-	if err != nil {
-		return errutil.Err(err)
-	}
-	if err = t.Execute(w, nil); err != nil {
+	if _, err := io.WriteString(w, index[1:]); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
@@ -83,13 +79,51 @@ func (srv *emailServer) servePOST(w http.ResponseWriter, req *http.Request) erro
 	}
 
 	// Display success page :)
-	t, err := template.ParseFiles("data/enjoy.html")
-	if err != nil {
-		return errutil.Err(err)
-	}
-	if err := t.Execute(w, nil); err != nil {
+	if _, err := io.WriteString(w, success[1:]); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
-
 }
+
+const (
+	index = `
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<title>Yesterday, all my troubles seemed so far away</title>
+	</head>
+	<body>
+		<form action='/' method='POST' enctype='multipart/form-data'>
+			<fieldset style='margin: 10% auto; width: 500px'>
+				<legend>Yesterday, all my troubles seemed so far away</legend>
+				<div style='float: left; width: 130px'>To:</div>
+				<div><input type='text' name='to' placeholder='recipient@example.org' style='width: 360px'></div>
+				<div style='float: left; width: 130px'>Subject:</div>
+				<div><input type='text' name='subject' placeholder='Subject' style='width: 360px'></div>
+				<div style='float: left; width: 130px'>Message:</div>
+				<div><textarea name='message' placeholder='Message' style='width: 360px; height: 260px;'></textarea></div>
+				<div style='float: left; width: 130px'>Attachments:</div>
+				<div><input type='file' name='attachment' multiple style='width: 360px'></div>
+				<div style='margin-left: 130px'><input type='submit' value='Send email'></div>
+			</fieldset>
+		</form>
+	</body>
+</html>
+`
+	success = `
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<title>Oh, I believe in yesterday</title>
+	</head>
+	<body>
+		<fieldset style='margin: 10% auto; width: 500px'>
+			<legend>Oh, I believe in yesterday</legend>
+			<em>Email successfully sent 24 hours ago.</em>
+		</fieldset>
+	</body>
+</html>
+`
+)
