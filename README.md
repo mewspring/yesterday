@@ -21,6 +21,8 @@ With the -http flag, it runs as a web server and sends email from a web page.
 ## Installation
 
     go get github.com/mewmew/yesterday
+    cp $GOPATH/src/github.com/mewmew/yesterday/example_auth.json auth.json
+    # Edit username and password for SMTP authentication in auth.json
 
 ## Usage
 
