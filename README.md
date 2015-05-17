@@ -10,11 +10,11 @@ Yesterday is a procrastination tool which allows you to send emails up to 24 hou
 
 It has two modes.
 
-Without the -http flag, it runs in command-line mode and sends email from the terminal.
+Without the -http flag, it runs in command-line mode and sends emails from the terminal.
 
     yesterday -to="jane.roe@uni.edu" -subject="Report" -message="See attachment." report.pdf
 
-With the -http flag, it runs as a web server and sends email from a web page.
+With the -http flag, it runs as a web server and sends emails from a web page.
 
     yesterday -http=:6565
 
