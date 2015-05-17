@@ -77,7 +77,7 @@ To: %s
 Subject: %s
 
 --BOUNDARY
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 
 %s
 `
@@ -92,9 +92,9 @@ Content-Type: text/plain; charset="UTF-8"
 		const format = `--BOUNDARY
 Content-Type: %s
 Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=%q; modification-date=%q
+Content-Disposition: attachment; filename=%q
 `
-		fmt.Fprintf(buf, format, mime.TypeByExtension(ext), name, date)
+		fmt.Fprintf(buf, format, mime.TypeByExtension(ext), name)
 		enc.Write(content)
 		enc.Close()
 		buf.WriteByte('\n')
