@@ -2,12 +2,13 @@
 <html>
 	<head>
 		<meta charset='utf-8'>
-		<title>Yesterday, all my troubles seemed so far away.</title>
+		<title>Yesterday, all my troubles seemed so far away</title>
 	</head>
 	<body>
-		<form action='/' method='POST'>
+		<form action='/' method='POST' enctype='multipart/form-data'>
 			<fieldset style='margin: 10% auto; width: 500px'>
-				<legend>Yesterday, all my troubles seemed so far away.</legend>
+				<legend>Yesterday, all my troubles seemed so far away</legend>
+
 				<div style='float: left; width: 105px'>To:</div>
 				<div><input type='text' name='to' placeholder='recipient@example.org'></div>
 
@@ -18,7 +19,7 @@
 				<div><textarea name='message' placeholder='Message'></textarea></div>
 
 				<div style='float: left; width: 105px'>Attachment:</div>
-				<div><input type='file' name='attachment'></div>
+				<div><input type='file' name='attachment' multiple></div>
 
 				<div style='margin-left: 105px'><input type='submit' value='Send email'></div>
 			</fieldset>

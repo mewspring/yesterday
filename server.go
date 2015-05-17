@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -17,34 +18,78 @@ type emailServer struct {
 
 // ServeHTTP responds to the given HTTP request.
 func (srv *emailServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if req.Method == "POST" {
-		req.ParseForm()
-		log.Print("form:", req.Form)
-		e := new(Email)
-		e.to = req.FormValue("to")
-		e.subject = req.FormValue("subject")
-		e.message = req.FormValue("message")
-		e.date = time.Now().Add(-time.Hour * 24)
-		err := e.Send(srv.auth)
-		if err != nil {
+	switch req.Method {
+	case "GET":
+		if err := srv.serveGET(w, req); err != nil {
 			log.Print(err)
 		}
-		t, err := template.ParseFiles("data/enjoy.html")
-		if err != nil {
-			log.Fatal(errutil.Err(err))
+	case "POST":
+		if err := srv.servePOST(w, req); err != nil {
+			log.Print(err)
 		}
-		err = t.Execute(w, nil)
-		if err != nil {
-			log.Fatal(errutil.Err(err))
-		}
-		return
+	default:
+		log.Printf("method %q not yet supported", req.Method)
 	}
+}
+
+// serveGET responds to the given HTTP GET request.
+func (srv *emailServer) serveGET(w http.ResponseWriter, req *http.Request) error {
+	// Display form page.
 	t, err := template.ParseFiles("data/index.html")
 	if err != nil {
-		log.Fatal(errutil.Err(err))
+		return errutil.Err(err)
 	}
-	err = t.Execute(w, nil)
+	if err = t.Execute(w, nil); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+}
+
+// servePOST responds to the given HTTP POST request.
+func (srv *emailServer) servePOST(w http.ResponseWriter, req *http.Request) error {
+	const MB = 1024 * 1024
+	if err := req.ParseMultipartForm(50 * MB); err != nil {
+		return errutil.Err(err)
+	}
+	attachments := make(map[string][]byte, len(req.MultipartForm.File))
+	for _, file := range req.MultipartForm.File["attachment"] {
+		name := file.Filename
+		f, err := file.Open()
+		if err != nil {
+			return errutil.Err(err)
+		}
+		buf, err := ioutil.ReadAll(f)
+		f.Close()
+		if err != nil {
+			return errutil.Err(err)
+		}
+		if _, ok := attachments[name]; ok {
+			return errutil.Newf("unable to add attachment; duplicate file name %q", name)
+		}
+		attachments[name] = buf
+	}
+
+	// Send email.
+	date := time.Now().Add(-time.Hour * 24)
+	e := &Email{
+		to:          req.FormValue("to"),
+		subject:     req.FormValue("subject"),
+		message:     req.FormValue("message"),
+		date:        date,
+		attachments: attachments,
+	}
+	if err := e.Send(srv.auth); err != nil {
+		return errutil.Err(err)
+	}
+
+	// Display success page :)
+	t, err := template.ParseFiles("data/enjoy.html")
 	if err != nil {
-		log.Fatal(errutil.Err(err))
+		return errutil.Err(err)
 	}
+	if err := t.Execute(w, nil); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+
 }
